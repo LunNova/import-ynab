@@ -1,0 +1,22 @@
+[package]
+authors = ["Luna <git@lunaa.dev>"]
+edition = "2018"
+name = "import-ynab"
+version = "0.1.0"
+
+[dependencies]
+pretty_env_logger = ">=0.3"
+restson = ">=0.5"
+oauth2 = "3.0.0-alpha.3"
+serde_json = "*"
+structopt = "*"
+url = "1.7.2"
+failure = "*"
+chrono = { version = "0.4", features = ["serde"] }
+reqwest = "*"
+csv = "1.1"
+zip = "0.5.2"
+
+[dependencies.serde]
+features = ["derive"]
+version = ">=1.0"
