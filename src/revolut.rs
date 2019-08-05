@@ -139,6 +139,7 @@ pub mod api {
         pub tag: Option<String>,
         pub direction: Option<String>,
         pub counterpart: Option<TransactionCounterpart>,
+        pub state: Option<String>,
     }
 
     #[derive(Serialize, Deserialize, Debug)]
@@ -283,6 +284,9 @@ impl ConnectedProvider for RevolutProvider {
             .filter(|it| it.account.id == acc.account_id)
             .filter(|it| {
                 it.ty != "EXCHANGE" || it.direction.as_ref().map(|it| it.deref()) == Some("buy")
+            })
+            .filter(|it| {
+                it.ty != "CARD_PAYMENT" || it.state.as_ref().map(|it| it.deref()) == Some("COMPLETED")
             })
             .map(|tran| {
                 let transaction_id = tran.id.clone();

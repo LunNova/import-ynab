@@ -39,8 +39,8 @@ pub fn sync(config: &mut Config) -> Result<(), Error> {
                 account.display_name
             );
             if let Some(ynab_account) = ynab_account {
-                println!("Found ynab account {} = {}", ynab_account.name, ynab_account.balance);
                 let mut trans = provider.get_transactions(&account)?;
+                println!("Found ynab account {} = {}. {} Transactions to import.", ynab_account.name, ynab_account.balance, trans.len());
                 if !account.currency.eq_ignore_ascii_case(currency) {
                     for tran in &mut trans {
                         let rate = currency_converter
