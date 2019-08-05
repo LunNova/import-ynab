@@ -1,0 +1,4 @@
+target/
+secrets/
+Dockerfile
+*.md

@@ -62,7 +62,7 @@ fn load_connections(cfg: &mut Config) -> Result<Vec<Box<dyn ConnectedProvider>>,
     let provider_count = cfg.providers.len();
     for idx in 0..provider_count {
         let (refreshed, connection) = match &mut cfg.providers[idx] {
-            config::Provider::Truelayer(token) => truelayer::initialize(token),
+            config::Provider::Truelayer(token) => truelayer::initialize(&cfg.ynab_config, token),
             config::Provider::Revolut(token) => revolut::initialize(token),
         };
         if refreshed {

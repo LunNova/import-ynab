@@ -5,6 +5,7 @@ use std::convert::TryInto;
 use std::ops::{Add, Deref};
 type DateTime = chrono::DateTime<chrono::Utc>;
 use crate::AccountType;
+use crate::config::YnabConfig;
 
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::http_client;
@@ -142,8 +143,8 @@ impl crate::ConnectedProvider for TruelayerProvider {
     }
 }
 
-pub fn initialize(token: &mut Token) -> (bool, Result<Box<dyn crate::ConnectedProvider>, Error>) {
-    let (refreshed, access_token) = match refresh(token) {
+pub fn initialize(ynab_config: &YnabConfig, token: &mut Token) -> (bool, Result<Box<dyn crate::ConnectedProvider>, Error>) {
+    let (refreshed, access_token) = match refresh(ynab_config, token) {
         Ok((refreshed, token)) => (refreshed, token),
         Err(e) => return (false, Err(e)),
     };
@@ -331,11 +332,11 @@ pub mod api {
     }
 }
 
-pub fn new_oauth2_client() -> Result<BasicClient, Error> {
+pub fn new_oauth2_client(client_secret: &str) -> Result<BasicClient, Error> {
     Ok(BasicClient::new(
         ClientId::new("ynabimporter-8e5fae".to_string()),
         Some(ClientSecret::new(
-            include_str!("../secrets/truelayer-client-secret").to_string(),
+            client_secret.to_string(),
         )),
         AuthUrl::new(Url::parse("https://auth.truelayer.com/")?),
         Some(TokenUrl::new(Url::parse(
@@ -365,8 +366,8 @@ pub fn new_rest_client(access_token: &AccessToken) -> RestClient {
     rc
 }
 
-pub fn get_auth_url() -> Result<Url, Error> {
-    let client = new_oauth2_client()?;
+pub fn get_auth_url(config: &YnabConfig) -> Result<Url, Error> {
+    let client = new_oauth2_client(&config.truelayer_client_secret)?;
 
     let (url, _token) = client
         .authorize_url(CsrfToken::new_random)
@@ -387,10 +388,10 @@ pub fn get_auth_url() -> Result<Url, Error> {
     Ok(url)
 }
 
-pub fn authorize(
+pub fn authorize(config: &YnabConfig,
     token: String,
 ) -> Result<impl oauth2::TokenResponse<oauth2::basic::BasicTokenType>, Error> {
-    let client = new_oauth2_client()?;
+    let client = new_oauth2_client(&config.truelayer_client_secret)?;
     let token = client
         .exchange_code(AuthorizationCode::new(token))
         .request(http_client)?;
@@ -398,14 +399,14 @@ pub fn authorize(
     Ok(token)
 }
 
-pub fn refresh(token: &mut Token) -> Result<(bool, AccessToken), Error> {
+pub fn refresh(ynab_config: &YnabConfig, token: &mut Token) -> Result<(bool, AccessToken), Error> {
     let now = Utc::now();
 
     if now < token.access_token_expiry {
         return Ok((false, token.access_token.clone()));
     }
 
-    let client = new_oauth2_client()?;
+    let client = new_oauth2_client(&ynab_config.truelayer_client_secret)?;
     let new_token = client
         .exchange_refresh_token(&token.refresh_token)
         .request(http_client)?;

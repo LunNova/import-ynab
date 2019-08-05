@@ -1,14 +1,9 @@
 use crate::prelude::*;
 
-pub mod revolut;
-pub mod truelayer;
-
 pub fn run() -> Result<(), Error> {
     let args: SyncYnab = SyncYnab::from_args();
 
     match args.command {
-        SyncYnabCommands::Revolut(n) => revolut::handle(n),
-        SyncYnabCommands::Truelayer(n) => truelayer::handle(n),
         SyncYnabCommands::Config(n) => config::handle(args.args, n),
         SyncYnabCommands::Sync(_n) => {
             crate::ynab::sync(&mut crate::config::load_config(args.args.config_directory)?)
@@ -35,8 +30,6 @@ pub struct SyncYnabArgs {
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub enum SyncYnabCommands {
-    Revolut(revolut::RevolutClient),
-    Truelayer(truelayer::TruelayerArgs),
     Config(config::ConfigCommands),
     Sync(sync::SyncArgs),
 }
@@ -82,7 +75,7 @@ pub mod config {
             ConfigCommands::AddTruelayer => {
                 println!(
                     "Please authenticate at:\n{}",
-                    crate::truelayer::get_auth_url()?.to_string()
+                    crate::truelayer::get_auth_url(&config.ynab_config)?.to_string()
                 );
 
                 println!("Enter code:\n");
@@ -90,7 +83,7 @@ pub mod config {
                     let line = line?;
 
                     if !line.is_empty() {
-                        let token = crate::truelayer::authorize(line)?;
+                        let token = crate::truelayer::authorize(&config.ynab_config, line)?;
 
                         let mut token = crate::truelayer::Token {
                             display_name: "unknown".to_string(),
@@ -101,7 +94,7 @@ pub mod config {
                             refresh_token: token.refresh_token().unwrap().clone(),
                         };
 
-                        let (_refresh, result) = crate::truelayer::initialize(&mut token);
+                        let (_refresh, result) = crate::truelayer::initialize(&config.ynab_config, &mut token);
                         result?;
 
                         config.providers.push(Provider::Truelayer(token));
