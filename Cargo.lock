@@ -598,7 +598,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "import-ynab"
+name = "import-ynab-lib"
 version = "0.1.0"
 dependencies = [
  "chrono 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",

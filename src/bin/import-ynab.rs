@@ -1,5 +1,5 @@
-use import_ynab::cli;
-use import_ynab::prelude::*;
+use import_ynab_lib::cli;
+use import_ynab_lib::prelude::*;
 
 fn main() -> Result<(), Error> {
     if std::env::var_os("RUST_LOG") == None {

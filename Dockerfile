@@ -36,7 +36,7 @@ RUN addgroup --gid 1000 import-ynab && \
 
 WORKDIR /home/import-ynab/
 
-COPY --from=cargo-build /usr/src/import-ynab/target/release/cli import-ynab
+COPY --from=cargo-build /usr/src/import-ynab/target/release/import-ynab import-ynab
 
 RUN chown import-ynab:import-ynab import-ynab
 

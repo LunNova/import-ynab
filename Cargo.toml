@@ -1,7 +1,7 @@
 [package]
 authors = ["Luna <git@lunaa.dev>"]
 edition = "2018"
-name = "import-ynab"
+name = "import-ynab-lib"
 version = "0.1.0"
 
 [dependencies]
