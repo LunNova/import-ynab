@@ -135,8 +135,15 @@ impl crate::ConnectedProvider for TruelayerProvider {
                 transaction_id: truelayer_tran.transaction_id,
                 timestamp: truelayer_tran.timestamp,
                 amount: (truelayer_tran.amount * 1000f64) as i64,
+                payee_name: match truelayer_tran.merchant_name {
+                    Some(s) => Some(s),
+                    None => truelayer_tran
+                        .description
+                        .split_whitespace()
+                        .next()
+                        .map(|it| it.to_string()),
+                },
                 description: truelayer_tran.description,
-                payee_name: truelayer_tran.merchant_name,
                 category: None,
             })
             .collect())
