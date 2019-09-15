@@ -94,7 +94,8 @@ pub mod config {
                             refresh_token: token.refresh_token().unwrap().clone(),
                         };
 
-                        let (_refresh, result) = crate::truelayer::initialize(&config.ynab_config, &mut token);
+                        let (_refresh, result) =
+                            crate::truelayer::initialize(&config.ynab_config, &mut token);
                         result?;
 
                         config.providers.push(Provider::Truelayer(token));

@@ -4,8 +4,8 @@ use chrono::Utc;
 use std::convert::TryInto;
 use std::ops::{Add, Deref};
 type DateTime = chrono::DateTime<chrono::Utc>;
-use crate::AccountType;
 use crate::config::YnabConfig;
+use crate::AccountType;
 
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::http_client;
@@ -143,7 +143,10 @@ impl crate::ConnectedProvider for TruelayerProvider {
     }
 }
 
-pub fn initialize(ynab_config: &YnabConfig, token: &mut Token) -> (bool, Result<Box<dyn crate::ConnectedProvider>, Error>) {
+pub fn initialize(
+    ynab_config: &YnabConfig,
+    token: &mut Token,
+) -> (bool, Result<Box<dyn crate::ConnectedProvider>, Error>) {
     let (refreshed, access_token) = match refresh(ynab_config, token) {
         Ok((refreshed, token)) => (refreshed, token),
         Err(e) => return (false, Err(e)),
@@ -335,9 +338,7 @@ pub mod api {
 pub fn new_oauth2_client(client_secret: &str) -> Result<BasicClient, Error> {
     Ok(BasicClient::new(
         ClientId::new("ynabimporter-8e5fae".to_string()),
-        Some(ClientSecret::new(
-            client_secret.to_string(),
-        )),
+        Some(ClientSecret::new(client_secret.to_string())),
         AuthUrl::new(Url::parse("https://auth.truelayer.com/")?),
         Some(TokenUrl::new(Url::parse(
             "https://auth.truelayer.com/connect/token",
@@ -388,7 +389,8 @@ pub fn get_auth_url(config: &YnabConfig) -> Result<Url, Error> {
     Ok(url)
 }
 
-pub fn authorize(config: &YnabConfig,
+pub fn authorize(
+    config: &YnabConfig,
     token: String,
 ) -> Result<impl oauth2::TokenResponse<oauth2::basic::BasicTokenType>, Error> {
     let client = new_oauth2_client(&config.truelayer_client_secret)?;

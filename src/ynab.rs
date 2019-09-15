@@ -34,13 +34,16 @@ pub fn sync(config: &mut Config) -> Result<(), Error> {
             let ynab_account = ided_accounts.get(&account.account_id);
             println!(
                 "Looking for ynab account with ACCOUNT_ID=\"{}\" for {:?} {}",
-                account.account_id,
-                provider,
-                account.display_name
+                account.account_id, provider, account.display_name
             );
             if let Some(ynab_account) = ynab_account {
                 let mut trans = provider.get_transactions(&account)?;
-                println!("Found ynab account {} = {}. {} Transactions to import.", ynab_account.name, ynab_account.balance, trans.len());
+                println!(
+                    "Found ynab account {} = {}. {} Transactions to import.",
+                    ynab_account.name,
+                    ynab_account.balance,
+                    trans.len()
+                );
                 if !account.currency.eq_ignore_ascii_case(currency) {
                     for tran in &mut trans {
                         let rate = currency_converter
@@ -79,7 +82,10 @@ pub fn sync(config: &mut Config) -> Result<(), Error> {
                 .get_rate(Utc::today(), &account.currency, currency)
                 .ok_or_else(|| failure::err_msg(format!("Missing rates for {:#?}", &account)))?;
             let calc_balance = (account.balance as crate::currency::Rate * rate) as i64;
-            println!("Account {} = {}. Expected balance {}", ynab_account.name, ynab_account.balance, calc_balance);
+            println!(
+                "Account {} = {}. Expected balance {}",
+                ynab_account.name, ynab_account.balance, calc_balance
+            );
             if (ynab_account.balance - calc_balance).abs() > 100 {
                 let correction = crate::Transaction {
                     transaction_id: "correction_".to_string() + &Utc::now().timestamp().to_string(),

@@ -286,7 +286,12 @@ impl ConnectedProvider for RevolutProvider {
                 it.ty != "EXCHANGE" || it.direction.as_ref().map(|it| it.deref()) == Some("buy")
             })
             .filter(|it| {
-                it.ty != "CARD_PAYMENT" || it.state.as_ref().map(|it| it.deref()) == Some("COMPLETED")
+                it.ty != "CARD_PAYMENT"
+                    || (match it.state.as_ref().map(|it| it.deref()) {
+                        Some("COMPLETED") => true,
+                        Some("PENDING") => true,
+                        _ => false,
+                    })
             })
             .map(|tran| {
                 let transaction_id = tran.id.clone();
