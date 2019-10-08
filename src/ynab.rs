@@ -86,7 +86,7 @@ pub fn sync(config: &mut Config) -> Result<(), Error> {
                 "Account {} = {}. Expected balance {}",
                 ynab_account.name, ynab_account.balance, calc_balance
             );
-            if (ynab_account.balance - calc_balance).abs() > 100 {
+            if should_reconcile(ynab_account.balance, calc_balance) {
                 let correction = crate::Transaction {
                     transaction_id: "correction_".to_string() + &Utc::now().timestamp().to_string(),
                     timestamp: Utc::now(),
@@ -199,6 +199,24 @@ pub fn import_transactions(
     }
 
     Ok(())
+}
+
+fn should_reconcile(acc_balance: i64, calc_balance: i64) -> bool {
+    if acc_balance == calc_balance {
+        return false;
+    }
+    if acc_balance == 0 || calc_balance == 0 {
+        return true;
+    }
+    if (acc_balance - calc_balance).abs() > 1000 {
+        return true;
+    }
+    let ratio = acc_balance as f32 / calc_balance as f32;
+    let ratio = if ratio < 1.0 { 1.0 / ratio } else { ratio };
+    if ratio > 1.01 {
+        return true;
+    }
+    false
 }
 
 pub mod api {
