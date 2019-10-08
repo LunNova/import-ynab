@@ -178,7 +178,8 @@ const HOST: &str = "https://api.revolut.com";
 pub fn new_rest_client(device_id: &str) -> RestClient {
     let mut rc = RestClient::builder().build(HOST).unwrap();
 
-    rc.set_header("X-Client-Version", "6.1").expect(HEADER_FAIL);
+    rc.set_header("X-Client-Version", "6.6.2")
+        .expect(HEADER_FAIL);
     rc.set_header("X-Api-Version", "1").expect(HEADER_FAIL);
     rc.set_header("X-Device-Id", device_id).expect(HEADER_FAIL);
     rc.set_header("X-Device-Model", "iPhone10,1")
@@ -222,14 +223,9 @@ impl Client {
     }
 
     pub fn get_transactions(&mut self) -> api::Transactions {
-        use std::time;
-        let from = format!(
-            "{}",
-            time::SystemTime::now()
-                .duration_since(time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
-        );
+        use chrono::{Duration, Utc};
+        let date = Utc::now() - Duration::days(30);
+        let from = format!("{}", date.timestamp() * 1000);
         let res: Result<_, _> = self.rc.get_with((), &[("from", &from)]);
         res.unwrap()
     }
