@@ -15,7 +15,7 @@ failure = "*"
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = "*"
 csv = "1.1"
-zip = "0.5.2"
+zip = "0.5.9"
 
 [dependencies.serde]
 features = ["derive"]
