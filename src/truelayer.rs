@@ -13,7 +13,7 @@ use oauth2::{
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
     TokenResponse, TokenUrl,
 };
-use url::Url;
+use oauth2::url::Url;
 
 struct TruelayerProvider {
     display_name: String,
@@ -346,14 +346,14 @@ pub fn new_oauth2_client(client_secret: &str) -> Result<BasicClient, Error> {
     Ok(BasicClient::new(
         ClientId::new("ynabimporter-8e5fae".to_string()),
         Some(ClientSecret::new(client_secret.to_string())),
-        AuthUrl::new(Url::parse("https://auth.truelayer.com/")?),
-        Some(TokenUrl::new(Url::parse(
-            "https://auth.truelayer.com/connect/token",
-        )?)),
+        AuthUrl::new("https://auth.truelayer.com/".to_string())?,
+        Some(TokenUrl::new(
+            "https://auth.truelayer.com/connect/token".to_string()
+        )?),
     )
-    .set_redirect_url(RedirectUrl::new(Url::parse(
-        "https://console.truelayer.com/redirect-page",
-    )?)))
+    .set_redirect_url(RedirectUrl::new(
+        "https://console.truelayer.com/redirect-page".to_string()
+    )?))
 }
 
 pub fn new_rest_client(access_token: &AccessToken) -> RestClient {
