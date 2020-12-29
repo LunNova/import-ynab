@@ -16,6 +16,7 @@ pub struct Config {
 pub struct YnabConfig {
     pub budget_id: String,
     pub access_token: String,
+    pub truelayer_client_id: String,
     pub truelayer_client_secret: String,
 }
 
@@ -24,6 +25,7 @@ impl Default for YnabConfig {
         YnabConfig {
             budget_id: "default".to_string(),
             access_token: "".to_string(),
+            truelayer_client_id: "".to_string(),
             truelayer_client_secret: "".to_string(),
         }
     }
@@ -81,7 +83,7 @@ where
     T: Default,
 {
     if !path.exists() {
-        println!("Couldn't load from {}", path.display());
+        println!("Couldn't load from {}. Loading default settings for {}.", path.display(), std::any::type_name::<T>());
         return Ok(Default::default());
     }
 

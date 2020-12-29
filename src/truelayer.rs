@@ -342,9 +342,9 @@ pub mod api {
     }
 }
 
-pub fn new_oauth2_client(client_secret: &str) -> Result<BasicClient, Error> {
+pub fn new_oauth2_client(client_id: &str, client_secret: &str) -> Result<BasicClient, Error> {
     Ok(BasicClient::new(
-        ClientId::new("ynabimporter-8e5fae".to_string()),
+        ClientId::new(client_id.to_string()),
         Some(ClientSecret::new(client_secret.to_string())),
         AuthUrl::new("https://auth.truelayer.com/".to_string())?,
         Some(TokenUrl::new(
@@ -375,7 +375,7 @@ pub fn new_rest_client(access_token: &AccessToken) -> RestClient {
 }
 
 pub fn get_auth_url(config: &YnabConfig) -> Result<Url, Error> {
-    let client = new_oauth2_client(&config.truelayer_client_secret)?;
+    let client = new_oauth2_client(&config.truelayer_client_id, &config.truelayer_client_secret)?;
 
     let (url, _token) = client
         .authorize_url(CsrfToken::new_random)
@@ -398,11 +398,11 @@ pub fn get_auth_url(config: &YnabConfig) -> Result<Url, Error> {
 
 pub fn authorize(
     config: &YnabConfig,
-    token: String,
+    token: &str,
 ) -> Result<impl oauth2::TokenResponse<oauth2::basic::BasicTokenType>, Error> {
-    let client = new_oauth2_client(&config.truelayer_client_secret)?;
+    let client = new_oauth2_client(&config.truelayer_client_id, &config.truelayer_client_secret)?;
     let token = client
-        .exchange_code(AuthorizationCode::new(token))
+        .exchange_code(AuthorizationCode::new(token.to_string()))
         .request(http_client)?;
 
     Ok(token)
@@ -415,7 +415,7 @@ pub fn refresh(ynab_config: &YnabConfig, token: &mut Token) -> Result<(bool, Acc
         return Ok((false, token.access_token.clone()));
     }
 
-    let client = new_oauth2_client(&ynab_config.truelayer_client_secret)?;
+    let client = new_oauth2_client(&ynab_config.truelayer_client_id, &ynab_config.truelayer_client_secret)?;
     let new_token = client
         .exchange_refresh_token(&token.refresh_token)
         .request(http_client)?;

@@ -81,6 +81,7 @@ pub mod config {
                 println!("Enter code:\n");
                 for line in stdin().lock().lines() {
                     let line = line?;
+                    let line = line.trim();
 
                     if !line.is_empty() {
                         let token = crate::truelayer::authorize(&config.ynab_config, line)?;
