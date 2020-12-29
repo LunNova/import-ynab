@@ -62,6 +62,11 @@ fn save_json<T>(path: &Path, t: &T) -> Result<(), Error>
 where
     T: serde::Serialize,
 {
+    match path.parent() {
+        None => {}
+        Some(parent) => std::fs::create_dir_all(parent)?,
+    }
+
     let mut file: File = File::create(path)?;
     serde_json::to_writer_pretty(&mut file, t)?;
     file.sync_all()?;
