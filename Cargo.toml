@@ -6,14 +6,14 @@ version = "0.1.0"
 
 [dependencies]
 pretty_env_logger = ">=0.3"
-restson = ">=0.5"
+restson = "0.5"
 oauth2 = "3.0.0-alpha.3"
 serde_json = "*"
 structopt = "*"
-url = "1.7.2"
+url = "2.2.0"
 failure = "*"
 chrono = { version = "0.4", features = ["serde"] }
-reqwest = "*"
+reqwest = "0.9"
 csv = "1.1"
 zip = "0.5.2"
 
