@@ -399,7 +399,7 @@ pub fn authorize(
     let token = client
         .exchange_code(AuthorizationCode::new(token.to_string()))
         .request(http_client)
-        .map_err(anyhow::Error::msg)
+        .map_err(|e| anyhow!("{:?}", e))
         .context("Failed to authorize with truelayer")?;
 
     Ok(token)

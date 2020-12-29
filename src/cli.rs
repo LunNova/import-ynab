@@ -108,6 +108,7 @@ pub mod config {
                         let (_refresh, result) =
                             crate::truelayer::initialize(&config.ynab_config, &mut token);
                         result?;
+                        println!("Connected");
 
                         config.providers.push(Provider::Truelayer(token));
 
