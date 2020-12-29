@@ -419,7 +419,7 @@ pub fn refresh(ynab_config: &YnabConfig, token: &mut Token) -> Result<(bool, Acc
     let new_token = client
         .exchange_refresh_token(&token.refresh_token)
         .request(http_client)
-        .map_err(anyhow::Error::msg)
+        .map_err(|e| anyhow!("{:?}", e))
         .context("Error refreshing truelayer token")?;
 
     token.access_token = new_token.access_token().clone();
