@@ -1,10 +1,16 @@
 use crate::config::Config;
 use crate::prelude::*;
 use crate::Transaction;
+use anyhow::ensure;
 use api::*;
 use chrono::Utc;
 
 pub fn sync(config: &mut Config) -> Result<()> {
+    ensure!(
+        !&config.ynab_config.access_token.is_empty(),
+        "access_token for YNAB must be set in config"
+    );
+
     let currency_converter = crate::currency::load_currency_converter()?;
     let mut rc = new_rest_client(&config.ynab_config.access_token);
     let ynab_accounts = get_accounts(&mut rc, &config.ynab_config.budget_id)?;

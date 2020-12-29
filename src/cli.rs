@@ -49,6 +49,8 @@ pub mod config {
     }
 
     pub fn handle(args: SyncYnabArgs, command: ConfigCommands) -> Result<()> {
+        use anyhow::ensure;
+
         let mut config = crate::config::load_config(&args.config_directory)?;
 
         use oauth2::TokenResponse;
@@ -66,7 +68,16 @@ pub mod config {
                 }
             }
             ConfigCommands::TestYnab => {
+                ensure!(
+                    !&config.ynab_config.access_token.is_empty(),
+                    "access_token for YNAB must be set in config"
+                );
+
                 let mut rc = crate::ynab::new_rest_client(&config.ynab_config.access_token);
+                println!(
+                    "Getting accounts in YNAB budget_id: {}",
+                    &config.ynab_config.budget_id
+                );
                 println!(
                     "{:#?}",
                     crate::ynab::get_accounts(&mut rc, &config.ynab_config.budget_id)
