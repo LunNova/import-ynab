@@ -30,6 +30,8 @@ RUN cargo build --release --offline
 
 FROM ubuntu:rolling
 
+LABEL org.opencontainers.image.source=https://github.com/TransLunarInjection/import-ynab
+
 RUN addgroup --gid 1000 import-ynab && \
     adduser --disabled-login --shell /bin/sh --uid 1000 --ingroup import-ynab import-ynab && \
     apt-get update && apt-get install libssl1.1 libcurl4 -y && rm -rf /var/lib/apt/lists/*
