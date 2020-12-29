@@ -9,11 +9,11 @@ use crate::AccountType;
 
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::http_client;
+use oauth2::url::Url;
 use oauth2::{
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
     TokenResponse, TokenUrl,
 };
-use oauth2::url::Url;
 
 struct TruelayerProvider {
     display_name: String,
@@ -21,7 +21,7 @@ struct TruelayerProvider {
 }
 
 impl TruelayerProvider {
-    fn test(&mut self) -> Result<(), Error> {
+    fn test(&mut self) -> Result<()> {
         let metadata: AccessTokenMetadataResponse = self.rest_client.get(())?;
         let metadata = &metadata.results[0];
 
@@ -32,15 +32,10 @@ impl TruelayerProvider {
             "{} {} {} {} {}",
             metadata.provider.display_name,
             identity.full_name,
-            metadata
-                .consent_status
-                .as_ref()
-                .map(|f| f.deref())
-                .unwrap_or("no status"),
+            metadata.consent_status.as_deref().unwrap_or("no status"),
             metadata
                 .consent_expires_at
-                .as_ref()
-                .map(|f| f.deref())
+                .as_deref()
                 .unwrap_or("no expiry"),
             metadata.client_id
         );
@@ -55,7 +50,7 @@ impl std::fmt::Debug for TruelayerProvider {
 }
 
 impl crate::ConnectedProvider for TruelayerProvider {
-    fn get_accounts(&mut self) -> Result<Vec<crate::Account>, Error> {
+    fn get_accounts(&mut self) -> Result<Vec<crate::Account>> {
         let accounts: Result<AccountsResponse, _> = self.rest_client.get(());
         let cards: Result<CardsResponse, _> = self.rest_client.get(());
 
@@ -83,7 +78,7 @@ impl crate::ConnectedProvider for TruelayerProvider {
                             balance: (balance.results[0].current * 1000.0) as i64,
                         })
                     })
-                    .collect::<Result<Vec<_>, Error>>()?,
+                    .collect::<Result<Vec<_>>>()?,
             )
         }
 
@@ -103,14 +98,14 @@ impl crate::ConnectedProvider for TruelayerProvider {
                             balance: -(balance.results[0].current * 1000.0) as i64,
                         })
                     })
-                    .collect::<Result<Vec<_>, Error>>()?,
+                    .collect::<Result<Vec<_>>>()?,
             )
         }
 
         Ok(converted_accounts)
     }
 
-    fn get_transactions(&mut self, acc: &crate::Account) -> Result<Vec<crate::Transaction>, Error> {
+    fn get_transactions(&mut self, acc: &crate::Account) -> Result<Vec<crate::Transaction>> {
         let transactions = match acc.ty {
             AccountType::Account => {
                 let transactions: TransactionsResponse =
@@ -153,7 +148,7 @@ impl crate::ConnectedProvider for TruelayerProvider {
 pub fn initialize(
     ynab_config: &YnabConfig,
     token: &mut Token,
-) -> (bool, Result<Box<dyn crate::ConnectedProvider>, Error>) {
+) -> (bool, Result<Box<dyn crate::ConnectedProvider>>) {
     let (refreshed, access_token) = match refresh(ynab_config, token) {
         Ok((refreshed, token)) => (refreshed, token),
         Err(e) => return (false, Err(e)),
@@ -342,17 +337,17 @@ pub mod api {
     }
 }
 
-pub fn new_oauth2_client(client_id: &str, client_secret: &str) -> Result<BasicClient, Error> {
+pub fn new_oauth2_client(client_id: &str, client_secret: &str) -> Result<BasicClient> {
     Ok(BasicClient::new(
         ClientId::new(client_id.to_string()),
         Some(ClientSecret::new(client_secret.to_string())),
         AuthUrl::new("https://auth.truelayer.com/".to_string())?,
         Some(TokenUrl::new(
-            "https://auth.truelayer.com/connect/token".to_string()
+            "https://auth.truelayer.com/connect/token".to_string(),
         )?),
     )
     .set_redirect_url(RedirectUrl::new(
-        "https://console.truelayer.com/redirect-page".to_string()
+        "https://console.truelayer.com/redirect-page".to_string(),
     )?))
 }
 
@@ -374,7 +369,7 @@ pub fn new_rest_client(access_token: &AccessToken) -> RestClient {
     rc
 }
 
-pub fn get_auth_url(config: &YnabConfig) -> Result<Url, Error> {
+pub fn get_auth_url(config: &YnabConfig) -> Result<Url> {
     let client = new_oauth2_client(&config.truelayer_client_id, &config.truelayer_client_secret)?;
 
     let (url, _token) = client
@@ -399,26 +394,33 @@ pub fn get_auth_url(config: &YnabConfig) -> Result<Url, Error> {
 pub fn authorize(
     config: &YnabConfig,
     token: &str,
-) -> Result<impl oauth2::TokenResponse<oauth2::basic::BasicTokenType>, Error> {
+) -> Result<impl oauth2::TokenResponse<oauth2::basic::BasicTokenType>> {
     let client = new_oauth2_client(&config.truelayer_client_id, &config.truelayer_client_secret)?;
     let token = client
         .exchange_code(AuthorizationCode::new(token.to_string()))
-        .request(http_client)?;
+        .request(http_client)
+        .map_err(anyhow::Error::msg)
+        .context("Failed to authorize with truelayer")?;
 
     Ok(token)
 }
 
-pub fn refresh(ynab_config: &YnabConfig, token: &mut Token) -> Result<(bool, AccessToken), Error> {
+pub fn refresh(ynab_config: &YnabConfig, token: &mut Token) -> Result<(bool, AccessToken)> {
     let now = Utc::now();
 
     if now < token.access_token_expiry {
         return Ok((false, token.access_token.clone()));
     }
 
-    let client = new_oauth2_client(&ynab_config.truelayer_client_id, &ynab_config.truelayer_client_secret)?;
+    let client = new_oauth2_client(
+        &ynab_config.truelayer_client_id,
+        &ynab_config.truelayer_client_secret,
+    )?;
     let new_token = client
         .exchange_refresh_token(&token.refresh_token)
-        .request(http_client)?;
+        .request(http_client)
+        .map_err(anyhow::Error::msg)
+        .context("Error refreshing truelayer token")?;
 
     token.access_token = new_token.access_token().clone();
     token.refresh_token = new_token.refresh_token().unwrap().clone();

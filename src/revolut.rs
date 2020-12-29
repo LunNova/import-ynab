@@ -2,7 +2,6 @@ use crate::prelude::*;
 use crate::revolut::api::Transaction;
 use crate::{AccountType, ConnectedProvider};
 use std::fmt::{Debug, Formatter};
-use std::ops::Deref;
 
 const HEADER_FAIL: &str = "Header should be valid";
 
@@ -14,7 +13,7 @@ pub struct Token {
     pub password: String,
 }
 
-pub fn initialize(token: &mut Token) -> (bool, Result<Box<dyn ConnectedProvider>, Error>) {
+pub fn initialize(token: &mut Token) -> (bool, Result<Box<dyn ConnectedProvider>>) {
     let mut client = Client::new(new_rest_client(&token.device_id));
     client.auth(&token);
 
@@ -258,7 +257,7 @@ impl Debug for RevolutProvider {
 }
 
 impl ConnectedProvider for RevolutProvider {
-    fn get_accounts(&mut self) -> Result<Vec<crate::Account>, Error> {
+    fn get_accounts(&mut self) -> Result<Vec<crate::Account>> {
         Ok(self
             .accounts
             .pockets
@@ -273,17 +272,15 @@ impl ConnectedProvider for RevolutProvider {
             .collect())
     }
 
-    fn get_transactions(&mut self, acc: &crate::Account) -> Result<Vec<crate::Transaction>, Error> {
+    fn get_transactions(&mut self, acc: &crate::Account) -> Result<Vec<crate::Transaction>> {
         Ok(self
             .transactions
             .iter()
             .filter(|it| it.account.id == acc.account_id)
-            .filter(|it| {
-                it.ty != "EXCHANGE" || it.direction.as_ref().map(|it| it.deref()) == Some("buy")
-            })
+            .filter(|it| it.ty != "EXCHANGE" || it.direction.as_deref() == Some("buy"))
             .filter(|it| {
                 it.ty != "CARD_PAYMENT"
-                    || (match it.state.as_ref().map(|it| it.deref()) {
+                    || (match it.state.as_deref() {
                         Some("COMPLETED") => true,
                         Some("PENDING") => true,
                         _ => false,
@@ -300,14 +297,14 @@ impl ConnectedProvider for RevolutProvider {
                             .iter()
                             .find(|it| &it.id == beneficiary)
                             .map(|it| format!("{} {}", it.first_name, it.last_name))
-                    } else if Some("GOOGLE_PAY") == tran.entry_mode.as_ref().map(|it| it.deref()) {
+                    } else if Some("GOOGLE_PAY") == tran.entry_mode.as_deref() {
                         Some("Google Pay Topup".to_string())
                     } else if "TOPUP" == &tran.ty {
                         tran.description
                             .as_ref()
                             .map(|it| it.trim_start_matches("Payment from ").to_string())
                     } else if "FEE" == &tran.ty {
-                        match tran.tag.as_ref().map(|it| it.deref()) {
+                        match tran.tag.as_deref() {
                             Some("insurance") => Some("Revolut Insurance".to_string()),
                             _ => Some("Revolut".to_string()),
                         }

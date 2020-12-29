@@ -1,7 +1,6 @@
 pub const DEFAULT_PATH: &str = "secrets/";
 
 use crate::prelude::*;
-use failure::ResultExt;
 use std::fs::{File, OpenOptions};
 use std::path::{Path, PathBuf};
 
@@ -14,9 +13,13 @@ pub struct Config {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct YnabConfig {
+    #[serde(default)]
     pub budget_id: String,
+    #[serde(default)]
     pub access_token: String,
+    #[serde(default)]
     pub truelayer_client_id: String,
+    #[serde(default)]
     pub truelayer_client_secret: String,
 }
 
@@ -37,7 +40,7 @@ pub enum Provider {
     Revolut(crate::revolut::Token),
 }
 
-pub fn load_config(path: impl Into<PathBuf>) -> Result<Config, Error> {
+pub fn load_config(path: impl Into<PathBuf>) -> Result<Config> {
     let (path, providers, ynab) = config_paths(path);
     let providers = load_or_default(&providers)?;
     let ynab_config = load_or_default(&ynab)?;
@@ -49,7 +52,7 @@ pub fn load_config(path: impl Into<PathBuf>) -> Result<Config, Error> {
     })
 }
 
-pub fn save_config(path: impl Into<PathBuf>, cfg: &Config) -> Result<(), Error> {
+pub fn save_config(path: impl Into<PathBuf>, cfg: &Config) -> Result<()> {
     let (_path, providers, ynab) = config_paths(path);
 
     make_backup(&providers)?;
@@ -61,7 +64,7 @@ pub fn save_config(path: impl Into<PathBuf>, cfg: &Config) -> Result<(), Error> 
     Ok(())
 }
 
-fn save_json<T>(path: &Path, t: &T) -> Result<(), Error>
+fn save_json<T>(path: &Path, t: &T) -> Result<()>
 where
     T: serde::Serialize,
 {
@@ -77,13 +80,17 @@ where
     Ok(())
 }
 
-fn load_or_default<'a, T>(path: &Path) -> Result<T, Error>
+fn load_or_default<'a, T>(path: &Path) -> Result<T>
 where
     for<'de> T: Deserialize<'de> + 'a,
     T: Default,
 {
     if !path.exists() {
-        println!("Couldn't load from {}. Loading default settings for {}.", path.display(), std::any::type_name::<T>());
+        println!(
+            "Couldn't load from {}. Loading default settings for {}.",
+            path.display(),
+            std::any::type_name::<T>()
+        );
         return Ok(Default::default());
     }
 
@@ -101,7 +108,7 @@ fn config_paths(path: impl Into<PathBuf>) -> (PathBuf, PathBuf, PathBuf) {
     (path, providers, ynab)
 }
 
-fn make_backup(path: &Path) -> Result<(), Error> {
+fn make_backup(path: &Path) -> Result<()> {
     let bak: PathBuf = path.with_extension("json.bak");
 
     if path.exists() {
@@ -109,9 +116,9 @@ fn make_backup(path: &Path) -> Result<(), Error> {
         OpenOptions::new()
             .write(true)
             .open(&bak)
-            .with_context(|e| format!("Error opening {}: {}", bak.display(), e))?
+            .with_context(|| format!("Error opening {}", bak.display()))?
             .sync_all()
-            .with_context(|e| format!("Error calling sync_all on {}: {}", bak.display(), e))?;
+            .with_context(|| format!("Error calling sync_all on {}", bak.display()))?;
     }
 
     Ok(())
@@ -122,7 +129,7 @@ pub mod test {
     use crate::prelude::*;
 
     #[test]
-    fn config() -> Result<(), Error> {
+    fn config() -> Result<()> {
         let cfg = super::load_config(super::DEFAULT_PATH)?;
         super::save_config(&cfg.path, &cfg)?;
 

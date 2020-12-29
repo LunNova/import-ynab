@@ -7,7 +7,7 @@ pub mod truelayer;
 pub mod ynab;
 
 pub mod prelude {
-    pub use failure::Error;
+    pub use anyhow::{anyhow, Context, Result};
     pub use restson::{RestClient, RestPath};
     pub use serde::{Deserialize, Serialize};
     pub use std::collections::HashMap;
@@ -46,8 +46,8 @@ use crate::config::Config;
 use crate::prelude::*;
 
 pub trait ConnectedProvider: std::fmt::Debug {
-    fn get_accounts(&mut self) -> Result<Vec<Account>, Error>;
-    fn get_transactions(&mut self, acc: &Account) -> Result<Vec<crate::Transaction>, Error>;
+    fn get_accounts(&mut self) -> Result<Vec<Account>>;
+    fn get_transactions(&mut self, acc: &Account) -> Result<Vec<crate::Transaction>>;
 }
 
 /*
@@ -56,7 +56,7 @@ fn load_connections(
 ) -> Result<(Vec<Box<dyn ConnectedProvider>>, Vec<Error>), Error> {
 */
 
-fn load_connections(cfg: &mut Config) -> Result<Vec<Box<dyn ConnectedProvider>>, Error> {
+fn load_connections(cfg: &mut Config) -> Result<Vec<Box<dyn ConnectedProvider>>> {
     let mut connected: Vec<Box<dyn ConnectedProvider>> = vec![];
 
     let provider_count = cfg.providers.len();

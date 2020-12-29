@@ -4,7 +4,7 @@ use std::io::{Cursor, Read};
 
 pub type Rate = f32;
 
-pub fn load_currency_converter() -> Result<CurrencyConverter, Error> {
+pub fn load_currency_converter() -> Result<CurrencyConverter> {
     // https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip
     //use bytes::buf::buf::Buf;
     use csv::Reader;
@@ -98,7 +98,7 @@ mod test {
     use chrono::Utc;
 
     #[test]
-    fn test_converter() -> Result<(), Error> {
+    fn test_converter() -> Result<()> {
         let converter = super::load_currency_converter()?;
         assert_eq!(1.0, converter.get_rate(Utc::today(), "EUR", "EUR").unwrap());
         assert_eq!(1.0, converter.get_rate(Utc::today(), "USD", "USD").unwrap());

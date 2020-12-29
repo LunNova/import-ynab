@@ -40,6 +40,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee67c11feeac938fae061b232e38e0b6d94f97a9df10e6271319325ac4c56a86"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -689,9 +695,9 @@ dependencies = [
 name = "import-ynab-lib"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "csv",
- "failure",
  "oauth2",
  "pretty_env_logger",
  "reqwest",

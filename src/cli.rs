@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn run() -> Result<(), Error> {
+pub fn run() -> Result<()> {
     let args: SyncYnab = SyncYnab::from_args();
 
     match args.command {
@@ -48,7 +48,7 @@ pub mod config {
         AddTruelayer,
     }
 
-    pub fn handle(args: SyncYnabArgs, command: ConfigCommands) -> Result<(), Error> {
+    pub fn handle(args: SyncYnabArgs, command: ConfigCommands) -> Result<()> {
         let mut config = crate::config::load_config(&args.config_directory)?;
 
         use oauth2::TokenResponse;

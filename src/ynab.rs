@@ -4,7 +4,7 @@ use crate::Transaction;
 use api::*;
 use chrono::Utc;
 
-pub fn sync(config: &mut Config) -> Result<(), Error> {
+pub fn sync(config: &mut Config) -> Result<()> {
     let currency_converter = crate::currency::load_currency_converter()?;
     let mut rc = new_rest_client(&config.ynab_config.access_token);
     let ynab_accounts = get_accounts(&mut rc, &config.ynab_config.budget_id)?;
@@ -48,9 +48,7 @@ pub fn sync(config: &mut Config) -> Result<(), Error> {
                     for tran in &mut trans {
                         let rate = currency_converter
                             .get_rate(tran.timestamp.date(), &account.currency, currency)
-                            .ok_or_else(|| {
-                                failure::err_msg(format!("Missing rates for {:#?}", tran))
-                            })?;
+                            .ok_or_else(|| anyhow!("Missing rates for {:#?}", tran))?;
                         tran.amount = (tran.amount as crate::currency::Rate * rate) as i64;
                     }
                 }
@@ -80,7 +78,7 @@ pub fn sync(config: &mut Config) -> Result<(), Error> {
 
             let rate = currency_converter
                 .get_rate(Utc::today(), &account.currency, currency)
-                .ok_or_else(|| failure::err_msg(format!("Missing rates for {:#?}", &account)))?;
+                .ok_or_else(|| anyhow!("Missing rates for {:#?}", &account))?;
             let calc_balance = (account.balance as crate::currency::Rate * rate) as i64;
             println!(
                 "Account {} = {}. Expected balance {}",
@@ -131,26 +129,22 @@ pub fn new_rest_client(access_token: &str) -> RestClient {
     rc
 }
 
-pub fn get_accounts(rc: &mut RestClient, budget_id: &str) -> Result<Vec<Account>, Error> {
+pub fn get_accounts(rc: &mut RestClient, budget_id: &str) -> Result<Vec<Account>> {
     let accounts: Wrapper<AccountsResponse> = rc.get(budget_id)?;
     Ok(accounts.data.accounts)
 }
 
-pub fn get_account(
-    rc: &mut RestClient,
-    budget_id: &str,
-    account_id: &str,
-) -> Result<Account, Error> {
+pub fn get_account(rc: &mut RestClient, budget_id: &str, account_id: &str) -> Result<Account> {
     let accounts: Wrapper<AccountResponse> = rc.get((budget_id, account_id))?;
     Ok(accounts.data.account)
 }
 
-pub fn get_budget(rc: &mut RestClient, budget_id: &str) -> Result<Budget, Error> {
+pub fn get_budget(rc: &mut RestClient, budget_id: &str) -> Result<Budget> {
     let accounts: Wrapper<BudgetResponse> = rc.get(budget_id)?;
     Ok(accounts.data.budget)
 }
 
-pub fn get_payees(rc: &mut RestClient, budget_id: &str) -> Result<Vec<Payee>, Error> {
+pub fn get_payees(rc: &mut RestClient, budget_id: &str) -> Result<Vec<Payee>> {
     let accounts: Wrapper<PayeesResponse> = rc.get(budget_id)?;
     Ok(accounts.data.payees)
 }
@@ -160,7 +154,7 @@ pub fn import_transactions(
     budget_id: &str,
     account_id: &str,
     transactions: Vec<Transaction>,
-) -> Result<(), Error> {
+) -> Result<()> {
     let payees = get_payees(rc, budget_id)?;
     for trans in transactions.chunks(50) {
         let trans = trans

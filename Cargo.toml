@@ -5,12 +5,12 @@ name = "import-ynab-lib"
 version = "0.1.0"
 
 [dependencies]
+anyhow = "1"
 pretty_env_logger = ">=0.3"
 restson = "0.5"
 oauth2 = "3"
 serde_json = "*"
 structopt = "*"
-failure = "*"
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = "0.9"
 csv = "1.1"
