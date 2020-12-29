@@ -1,7 +1,8 @@
 pub const DEFAULT_PATH: &str = "secrets/";
 
 use crate::prelude::*;
-use std::fs::File;
+use failure::ResultExt;
+use std::fs::{File, OpenOptions};
 use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -103,7 +104,12 @@ fn make_backup(path: &Path) -> Result<(), Error> {
 
     if path.exists() {
         std::fs::copy(&path, &bak)?;
-        File::open(bak)?.sync_all()?;
+        OpenOptions::new()
+            .write(true)
+            .open(&bak)
+            .with_context(|e| format!("Error opening {}: {}", bak.display(), e))?
+            .sync_all()
+            .with_context(|e| format!("Error calling sync_all on {}: {}", bak.display(), e))?;
     }
 
     Ok(())
