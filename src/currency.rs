@@ -8,7 +8,7 @@ pub fn load_currency_converter() -> Result<CurrencyConverter> {
     // https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip
     //use bytes::buf::buf::Buf;
     use csv::Reader;
-    use reqwest::get;
+    use reqwest::blocking::get;
 
     let mut rates: HashMap<UtcDate, Vec<Rate>> = HashMap::new();
     let mut resp = get("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip")?;
