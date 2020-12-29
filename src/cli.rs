@@ -73,6 +73,16 @@ pub mod config {
                 );
             }
             ConfigCommands::AddTruelayer => {
+                if config.ynab_config.truelayer_client_id.is_empty() {
+                    println!("Missing truelayer client ID. Enter truelayer client ID:");
+                    config.ynab_config.truelayer_client_id = read_line()?.trim().to_string();
+                }
+
+                if config.ynab_config.truelayer_client_secret.is_empty() {
+                    println!("Missing truelayer client secret. Enter truelayer client secret:");
+                    config.ynab_config.truelayer_client_secret = read_line()?.trim().to_string();
+                }
+
                 println!(
                     "Please authenticate at:\n{}",
                     crate::truelayer::get_auth_url(&config.ynab_config)?.to_string()
@@ -109,6 +119,15 @@ pub mod config {
             }
         }
         Ok(())
+    }
+
+    fn read_line() -> Result<String> {
+        stdin()
+            .lock()
+            .lines()
+            .next()
+            .ok_or_else(|| anyhow!("Couldn't read line from stdin"))?
+            .map_err(|e| e.into())
     }
 }
 
