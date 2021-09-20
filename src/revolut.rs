@@ -175,7 +175,7 @@ pub mod api {
 const HOST: &str = "https://api.revolut.com";
 
 pub fn new_rest_client(device_id: &str) -> RestClient {
-    let mut rc = RestClient::builder().build(HOST).unwrap();
+    let mut rc = restson::RestClient::builder().blocking(HOST).unwrap();
 
     rc.set_header("X-Client-Version", "6.6.2")
         .expect(HEADER_FAIL);

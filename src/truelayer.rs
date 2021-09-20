@@ -354,7 +354,7 @@ pub fn new_oauth2_client(client_id: &str, client_secret: &str) -> Result<BasicCl
 pub fn new_rest_client(access_token: &AccessToken) -> RestClient {
     const HOST: &str = "https://api.truelayer.com/";
 
-    let mut rc = RestClient::builder().build(HOST).unwrap();
+    let mut rc = restson::RestClient::builder().blocking(HOST).unwrap();
 
     let header_fail = "Header should be valid";
 

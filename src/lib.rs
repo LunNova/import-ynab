@@ -8,7 +8,7 @@ pub mod ynab;
 
 pub mod prelude {
     pub use anyhow::{anyhow, Context, Result};
-    pub use restson::{RestClient, RestPath};
+    pub use restson::{blocking::RestClient, RestPath};
     pub use serde::{Deserialize, Serialize};
     pub use std::collections::HashMap;
     pub use structopt::StructOpt;

@@ -120,7 +120,7 @@ pub fn sync(config: &mut Config) -> Result<()> {
 pub fn new_rest_client(access_token: &str) -> RestClient {
     const HOST: &str = "https://api.youneedabudget.com/";
 
-    let mut rc = RestClient::builder().build(HOST).unwrap();
+    let mut rc = restson::RestClient::builder().blocking(HOST).unwrap();
 
     let header_fail = "Header should be valid";
 
