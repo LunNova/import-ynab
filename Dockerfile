@@ -30,7 +30,7 @@ RUN cargo build --release --offline
 
 FROM ubuntu:rolling
 
-LABEL org.opencontainers.image.source=https://github.com/TransLunarInjection/import-ynab
+LABEL org.opencontainers.image.source=https://github.com/LunNova/import-ynab
 
 RUN addgroup --gid 1000 import-ynab && \
     adduser --disabled-login --shell /bin/sh --uid 1000 --ingroup import-ynab import-ynab && \
