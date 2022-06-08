@@ -16,7 +16,7 @@ pub struct Token {
 
 pub fn initialize(token: &mut Token) -> (bool, Result<Box<dyn ConnectedProvider>>) {
     let mut client = Client::new(new_rest_client(&token.device_id));
-    client.auth(&token);
+    client.auth(token);
 
     let accounts = client.get_accounts();
     let transactions = client.get_transactions();
@@ -293,11 +293,7 @@ impl ConnectedProvider for RevolutProvider {
             .filter(|it| it.ty != "EXCHANGE" || it.direction.as_deref() == Some("buy"))
             .filter(|it| {
                 it.ty != "CARD_PAYMENT"
-                    || (match it.state.as_deref() {
-                        Some("COMPLETED") => true,
-                        Some("PENDING") => true,
-                        _ => false,
-                    })
+                    || matches!(it.state.as_deref(), Some("COMPLETED") | Some("PENDING"))
             })
             .map(|tran| {
                 let transaction_id = tran.id.clone();

@@ -96,7 +96,7 @@ pub mod config {
 
                 println!(
                     "Please authenticate at:\n{}",
-                    crate::truelayer::get_auth_url(&config.ynab_config)?.to_string()
+                    crate::truelayer::get_auth_url(&config.ynab_config)?
                 );
 
                 println!("Enter code:\n");
