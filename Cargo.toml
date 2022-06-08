@@ -6,16 +6,16 @@ version = "0.1.1"
 
 [dependencies]
 anyhow = "1"
-pretty_env_logger = ">=0.3"
-restson = "1.0"
+pretty_env_logger = ">=0.4.0"
+restson = "1.2"
 oauth2 = { version = "3", features = ["reqwest-010"], default-features = false }
 serde_json = "*"
 structopt = "*"
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.11", features = ["blocking"] }
 csv = "1.1"
-zip = "0.5.12"
+zip = "0.6.2"
 
 [dependencies.serde]
 features = ["derive"]
-version = ">=1.0"
+version = ">=1.0.137"
