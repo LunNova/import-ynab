@@ -350,7 +350,7 @@ pub fn new_oauth2_client(client_id: &str, client_secret: &str) -> Result<BasicCl
             "https://auth.truelayer.com/connect/token".to_string(),
         )?),
     )
-    .set_redirect_url(RedirectUrl::new(
+    .set_redirect_uri(RedirectUrl::new(
         "https://console.truelayer.com/redirect-page".to_string(),
     )?))
 }
