@@ -4,6 +4,7 @@ use crate::Transaction;
 use anyhow::ensure;
 use api::*;
 use chrono::Utc;
+use restson::Response;
 
 pub fn sync(config: &mut Config) -> Result<()> {
     ensure!(
@@ -136,23 +137,23 @@ pub fn new_rest_client(access_token: &str) -> RestClient {
 }
 
 pub fn get_accounts(rc: &mut RestClient, budget_id: &str) -> Result<Vec<Account>> {
-    let accounts: Wrapper<AccountsResponse> = rc.get(budget_id)?;
-    Ok(accounts.data.accounts)
+    let accounts: Response<Wrapper<AccountsResponse>> = rc.get(budget_id)?;
+    Ok(accounts.into_inner().data.accounts)
 }
 
 pub fn get_account(rc: &mut RestClient, budget_id: &str, account_id: &str) -> Result<Account> {
-    let accounts: Wrapper<AccountResponse> = rc.get((budget_id, account_id))?;
-    Ok(accounts.data.account)
+    let accounts: Response<Wrapper<AccountResponse>> = rc.get((budget_id, account_id))?;
+    Ok(accounts.into_inner().data.account)
 }
 
 pub fn get_budget(rc: &mut RestClient, budget_id: &str) -> Result<Budget> {
-    let accounts: Wrapper<BudgetResponse> = rc.get(budget_id)?;
-    Ok(accounts.data.budget)
+    let accounts: Response<Wrapper<BudgetResponse>> = rc.get(budget_id)?;
+    Ok(accounts.into_inner().data.budget)
 }
 
 pub fn get_payees(rc: &mut RestClient, budget_id: &str) -> Result<Vec<Payee>> {
-    let accounts: Wrapper<PayeesResponse> = rc.get(budget_id)?;
-    Ok(accounts.data.payees)
+    let accounts: Response<Wrapper<PayeesResponse>> = rc.get(budget_id)?;
+    Ok(accounts.into_inner().data.payees)
 }
 
 pub fn import_transactions(
@@ -196,6 +197,7 @@ pub fn import_transactions(
                 transactions: trans,
             },
         )?
+        .into_inner()
     }
 
     Ok(())

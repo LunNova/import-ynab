@@ -150,7 +150,7 @@ pub mod sync {
     #[structopt(rename_all = "kebab-case")]
     pub struct SyncArgs {
         //        #[structopt(subcommand)]
-    //        command: SyncCommands
+        //        command: SyncCommands
     }
 
     //    #[derive(StructOpt)]

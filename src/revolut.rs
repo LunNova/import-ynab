@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use crate::revolut::api::Transaction;
 use crate::{AccountType, ConnectedProvider};
+use restson::Response;
 use std::fmt::{Debug, Formatter};
 
 const HEADER_FAIL: &str = "Header should be valid";
@@ -208,12 +209,15 @@ impl Client {
     }
 
     pub fn signin(&mut self, sr: &auth::SigninRequest) {
-        let res: Result<(), _> = self.rc.post((), sr);
+        let res: Result<(), _> = self.rc.post((), sr).map(|x| x.into_inner());
         println!("{:?}", res);
     }
 
     pub fn confirm_signin(&mut self, sr: &auth::ConfirmSigninRequest) {
-        let res: Result<HashMap<String, String>, _> = self.rc.post_capture((), sr);
+        let res: Result<HashMap<String, String>, _> = self
+            .rc
+            .post_capture((), sr)
+            .map(|x: Response<HashMap<String, String>>| x.into_inner());
         println!("{:?}", res);
     }
 
@@ -225,17 +229,26 @@ impl Client {
         use chrono::{Duration, Utc};
         let date = Utc::now() - Duration::days(30);
         let from = format!("{}", date.timestamp() * 1000);
-        let res: Result<_, _> = self.rc.get_with((), &[("from", &from)]);
+        let res: Result<_, _> = self
+            .rc
+            .get_with((), &[("from", &from)])
+            .map(|x: Response<api::Transactions>| x.into_inner());
         res.unwrap()
     }
 
     pub fn get_accounts(&mut self) -> api::Accounts {
-        let res: Result<_, _> = self.rc.get(());
+        let res: Result<_, _> = self
+            .rc
+            .get(())
+            .map(|x: Response<api::Accounts>| x.into_inner());
         res.unwrap()
     }
 
     pub fn get_beneficiaries(&mut self) -> api::Beneficiaries {
-        let res: Result<_, _> = self.rc.get(());
+        let res: Result<_, _> = self
+            .rc
+            .get(())
+            .map(|x: Response<api::Beneficiaries>| x.into_inner());
         res.unwrap()
     }
 }

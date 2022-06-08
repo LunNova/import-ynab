@@ -14,6 +14,7 @@ use oauth2::{
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
     TokenResponse, TokenUrl,
 };
+use restson::Response;
 
 struct TruelayerProvider {
     display_name: String,
@@ -22,11 +23,11 @@ struct TruelayerProvider {
 
 impl TruelayerProvider {
     fn test(&mut self) -> Result<()> {
-        let metadata: AccessTokenMetadataResponse = self.rest_client.get(())?;
-        let metadata = &metadata.results[0];
+        let metadata: Response<AccessTokenMetadataResponse> = self.rest_client.get(())?;
+        let metadata = &metadata.into_inner().results[0];
 
-        let identity: IdentityResponse = self.rest_client.get(())?;
-        let identity = &identity.results[0];
+        let identity: Response<IdentityResponse> = self.rest_client.get(())?;
+        let identity = &identity.into_inner().results[0];
 
         self.display_name = format!(
             "{} {} {} {} {}",
@@ -51,8 +52,8 @@ impl std::fmt::Debug for TruelayerProvider {
 
 impl crate::ConnectedProvider for TruelayerProvider {
     fn get_accounts(&mut self) -> Result<Vec<crate::Account>> {
-        let accounts: Result<AccountsResponse, _> = self.rest_client.get(());
-        let cards: Result<CardsResponse, _> = self.rest_client.get(());
+        let accounts: Result<Response<AccountsResponse>, _> = self.rest_client.get(());
+        let cards: Result<Response<CardsResponse>, _> = self.rest_client.get(());
 
         let (accounts, cards) = match (accounts, cards) {
             // TODO second err also?
@@ -65,17 +66,18 @@ impl crate::ConnectedProvider for TruelayerProvider {
         if let Ok(accounts) = accounts {
             converted_accounts.extend(
                 accounts
+                    .into_inner()
                     .results
                     .into_iter()
                     .map(|truelayer_acc| {
-                        let balance: AccountBalanceResponse =
+                        let balance: Response<AccountBalanceResponse> =
                             self.rest_client.get(truelayer_acc.account_id.deref())?;
                         Ok(crate::Account {
                             account_id: truelayer_acc.account_id,
                             currency: truelayer_acc.currency,
                             display_name: truelayer_acc.display_name,
                             ty: AccountType::Account,
-                            balance: (balance.results[0].current * 1000.0) as i64,
+                            balance: (balance.into_inner().results[0].current * 1000.0) as i64,
                         })
                     })
                     .collect::<Result<Vec<_>>>()?,
@@ -85,17 +87,18 @@ impl crate::ConnectedProvider for TruelayerProvider {
         if let Ok(accounts) = cards {
             converted_accounts.extend(
                 accounts
+                    .into_inner()
                     .results
                     .into_iter()
                     .map(|truelayer_acc| {
-                        let balance: CardBalanceResponse =
+                        let balance: Response<CardBalanceResponse> =
                             self.rest_client.get(truelayer_acc.account_id.deref())?;
                         Ok(crate::Account {
                             account_id: truelayer_acc.account_id,
                             currency: truelayer_acc.currency,
                             display_name: truelayer_acc.display_name,
                             ty: AccountType::Card,
-                            balance: -(balance.results[0].current * 1000.0) as i64,
+                            balance: -(balance.into_inner().results[0].current * 1000.0) as i64,
                         })
                     })
                     .collect::<Result<Vec<_>>>()?,
@@ -108,13 +111,14 @@ impl crate::ConnectedProvider for TruelayerProvider {
     fn get_transactions(&mut self, acc: &crate::Account) -> Result<Vec<crate::Transaction>> {
         let transactions = match acc.ty {
             AccountType::Account => {
-                let transactions: TransactionsResponse =
+                let transactions: Response<TransactionsResponse> =
                     self.rest_client.get(acc.account_id.deref())?;
-                transactions.results
+                transactions.into_inner().results
             }
             AccountType::Card => {
-                let mut transactions: CardTransactionsResponse =
+                let transactions: Response<CardTransactionsResponse> =
                     self.rest_client.get(acc.account_id.deref())?;
+                let mut transactions = transactions.into_inner();
                 for transaction in &mut transactions.results {
                     transaction.amount = -transaction.amount;
                 }
