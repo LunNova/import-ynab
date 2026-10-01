@@ -8,7 +8,7 @@ version = "0.1.1"
 anyhow = "1"
 pretty_env_logger = ">=0.4.0"
 restson = "1.3"
-oauth2 = "4"
+oauth2 = "5"
 serde_json = "*"
 structopt = "*"
 chrono = { version = "0.4", features = ["serde"] }
